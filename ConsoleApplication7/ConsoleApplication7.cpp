@@ -102,22 +102,23 @@ int main()
     th.detach();
 
     
-    while (curTimer.count() < timer.count() )
+    while (true)
     {
         timeEnd = std::chrono::system_clock::now();
         curTimer = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
-        
-    }
-    if (curState)
-    {
-        std::cout << "Активно";
-    }
-    else {
-        std::cout << "Пассивно";
-    }
+        if (curState && curTimer.count() >= timer.count())
+        {
+            std::cout << "Активно" << std::endl;
+            timeStart = std::chrono::system_clock::now();
+        }
+        else if (!curState && curTimer.count() >= timer.count()) {
+            std::cout << "Пассивно" << std::endl;
+            timeStart = std::chrono::system_clock::now();
+        }
 
+    }
+  
    
     
 
-    int x = 0;
 }
