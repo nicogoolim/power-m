@@ -3,7 +3,8 @@
 #include <map>
 #include <Windows.h>
 #include <string>
-#include "upperSetting.h"
+#include <thread>
+
 struct mapStruct {
     std::string id;
     std::map<std::string, std::string>* intern;
@@ -22,6 +23,31 @@ void fillMap(mapStruct *maps, int size) {
     }
 }
 
+void trigger(int BA, int RMV, bool& curState, std::chrono::system_clock::time_point& start) {
+    int Y;
+    while (true)
+    {
+        std::cin >> Y;
+        if (Y >= BA)
+        {
+            if (!curState)
+            {
+                curState = true;
+                start = std::chrono::system_clock::now();
+            }
+        }
+        else if (Y < BA)
+        {
+            if (curState)
+            {
+                curState = false;
+                start = std::chrono::system_clock::now();
+            }
+        }
+    }
+        
+    
+}
 
 int main()
 {
@@ -36,7 +62,6 @@ int main()
     ex.emplace("K", intern);
     ex.emplace("Z", intern);
     ex.emplace("B", intern);
-
 
     maps[0].id = "K";
     maps[0].intern = &ex["K"];
@@ -58,19 +83,41 @@ int main()
     int BA;
     int RMV;
     int RDV;
+
     std::cout << "Введите BA:";
     std::cin >> BA;
     std::cout << "Введите RMV:";
     std::cin >> RMV;
     std::cout << "Введите RDV:";
     std::cin >> RDV;
-    upperSetting up(BA, RMV, RDV);
-    bool arg = up.trigger();
-    if (arg)
+
+    std::chrono::seconds timer = std::chrono::seconds(RDV);
+    auto timeStart  = std::chrono::system_clock::now();
+    auto timeEnd = std::chrono::system_clock::now();
+    auto curTimer = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
+    
+    bool curState;
+
+    std::thread th(trigger, BA, RMV, std::ref(curState), std::ref(timeStart));
+    th.detach();
+
+    
+    while (curTimer.count() < timer.count() )
+    {
+        timeEnd = std::chrono::system_clock::now();
+        curTimer = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
+        
+    }
+    if (curState)
     {
         std::cout << "Активно";
     }
     else {
         std::cout << "Пассивно";
     }
+
+   
+    
+
+    int x = 0;
 }
