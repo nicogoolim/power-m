@@ -10,6 +10,11 @@ struct mapStruct {
     std::map<std::string, std::string>* intern;
 };
 
+enum State {
+    active,
+    passive,
+    off  
+};
 
 void fillMap(mapStruct *maps, int size) {
     for (int i = 0; i < size; i++)
@@ -23,30 +28,30 @@ void fillMap(mapStruct *maps, int size) {
     }
 }
 
-void trigger(int BA, int RMV, bool& curState, std::chrono::system_clock::time_point& start) {
+void trigger(int BA, int RMV, State& curState, std::chrono::system_clock::time_point& start) {
     int Y;
     while (true)
     {
         std::cin >> Y;
-        if (Y >= BA)
+
+        if (Y >= BA + RMV)
         {
-            if (!curState)
+            if (curState!=active)
             {
-                curState = true;
                 start = std::chrono::system_clock::now();
             }
+            curState = active;
         }
-        else if (Y < BA)
+        else if (Y <= BA - RMV)
         {
-            if (curState)
+            if (curState != passive)
             {
-                curState = false;
                 start = std::chrono::system_clock::now();
             }
+           curState = passive;
         }
     }
-        
-    
+
 }
 
 int main()
@@ -96,7 +101,7 @@ int main()
     auto timeEnd = std::chrono::system_clock::now();
     auto curTimer = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
     
-    bool curState;
+    State curState = off;
 
     std::thread th(trigger, BA, RMV, std::ref(curState), std::ref(timeStart));
     th.detach();
@@ -104,18 +109,19 @@ int main()
     
     while (true)
     {
-        timeEnd = std::chrono::system_clock::now();
         curTimer = std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
-        if (curState && curTimer.count() >= timer.count())
+        timeEnd = std::chrono::system_clock::now();
+        if (curTimer.count() >= timer.count())
         {
-            std::cout << "Активно" << std::endl;
+            if (curState == active) {
+                std::cout << "Активно" << std::endl;
+            }
+            if (curState == passive) {
+                std::cout << "Пассивно" << std::endl;
+            }
+            curState = off;
             timeStart = std::chrono::system_clock::now();
         }
-        else if (!curState && curTimer.count() >= timer.count()) {
-            std::cout << "Пассивно" << std::endl;
-            timeStart = std::chrono::system_clock::now();
-        }
-
     }
   
    
